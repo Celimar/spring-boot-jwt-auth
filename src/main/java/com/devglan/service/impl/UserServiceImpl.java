@@ -2,12 +2,14 @@ package com.devglan.service.impl;
 
 import com.devglan.dao.UserDao;
 import com.devglan.model.User;
+import com.devglan.model.UserDto;
 import com.devglan.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +22,9 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	
 	@Autowired
 	private UserDao userDao;
+
+	@Autowired
+	private BCryptPasswordEncoder bcryptEncoder;
 
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userDao.findByUsername(username);
@@ -35,7 +40,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
 	public List<User> findAll() {
 		List<User> list = new ArrayList<>();
-		System.out.println("findall");
 		userDao.findAll().iterator().forEachRemaining(list::add);
 		return list;
 	}
@@ -56,7 +60,12 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 	}
 
 	@Override
-    public User save(User user) {
-        return userDao.save(user);
+    public User save(UserDto user) {
+	    User newUser = new User();
+	    newUser.setUsername(user.getUsername());
+	    newUser.setPassword(bcryptEncoder.encode(user.getPassword()));
+		newUser.setAge(user.getAge());
+		newUser.setSalary(user.getSalary());
+        return userDao.save(newUser);
     }
 }
